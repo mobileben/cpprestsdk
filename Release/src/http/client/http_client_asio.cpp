@@ -623,7 +623,7 @@ public:
 
             m_context->m_timer.start();
 
-            tcp::resolver::query query(utility::conversions::to_utf8string(proxy_host), to_string(proxy_port));
+            tcp::resolver::query query(tcp::v4(), utility::conversions::to_utf8string(proxy_host), to_string(proxy_port), boost::asio::ip::resolver_query_base::numeric_service);
 
             auto client = std::static_pointer_cast<asio_client>(m_context->m_http_client);
             client->m_resolver.async_resolve(query,
@@ -917,9 +917,11 @@ public:
                 auto tcp_host = proxy_type == http_proxy_type::http ? proxy_host : host;
                 auto tcp_port = proxy_type == http_proxy_type::http ? proxy_port : port;
 
-                tcp::resolver::query query(tcp_host, to_string(tcp_port), boost::asio::ip::resolver_query_base::numeric_service);
+                tcp::resolver::query query(tcp::v4(), tcp_host, to_string(tcp_port), boost::asio::ip::resolver_query_base::numeric_service);
+
                 printf("DEBUG calling async_resolve tcp_host %s tcp_port %d\n", tcp_host.c_str(), tcp_port);
-                printf("DEBUG query host name %s service name %s\n" ,query.host_name().c_str(), query.service_name().c_str());
+                printf("DEBUG query host_name %s service_name %s\n" ,query.host_name().c_str(), query.service_name().c_str());
+
                 auto client = std::static_pointer_cast<asio_client>(ctx->m_http_client);
                 client->m_resolver.async_resolve(query,
                                                  boost::bind(&asio_context::handle_resolve,
