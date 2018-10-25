@@ -917,7 +917,7 @@ public:
                 auto tcp_host = proxy_type == http_proxy_type::http ? proxy_host : host;
                 auto tcp_port = proxy_type == http_proxy_type::http ? proxy_port : port;
 
-                tcp::resolver::query query(tcp_host, "http");
+                tcp::resolver::query query(tcp_host, to_string(tcp_port), boost::asio::ip::resolver_query_base::numeric_service);
 
                 printf("DEBUG query host_name %s service_name %s\n" ,query.host_name().c_str(), query.service_name().c_str());
                 printf("DEBUG async_resolve tcp_host %s tcp_port %d\n", tcp_host.c_str(), tcp_port);
