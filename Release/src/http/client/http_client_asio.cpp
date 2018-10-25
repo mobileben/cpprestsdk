@@ -917,9 +917,9 @@ public:
                 auto tcp_host = proxy_type == http_proxy_type::http ? proxy_host : host;
                 auto tcp_port = proxy_type == http_proxy_type::http ? proxy_port : port;
 
-                tcp::resolver::query query(tcp_host, to_string(tcp_port));
+                tcp::resolver::query query(tcp_host, to_string(tcp_port), boost::asio::ip::resolver_query_base::numeric_service);
                 printf("DEBUG calling async_resolve %s %d\n", tcp_host.c_str(), tcp_port);
-                printf("DEBUG query %s %s\n" ,query.host_name().c_str(), query.service_name().c_str());
+                printf("DEBUG query host name %s service name %s\n" ,query.host_name().c_str(), query.service_name().c_str());
                 auto client = std::static_pointer_cast<asio_client>(ctx->m_http_client);
                 client->m_resolver.async_resolve(query,
                                                  boost::bind(&asio_context::handle_resolve,
