@@ -595,6 +595,7 @@ public:
 
         void start_proxy_connect()
         {
+            printf("hit start_proxy_connect\n");
             auto proxy = m_context->m_http_client->client_config().proxy();
             auto proxy_uri = proxy.address();
 
@@ -767,8 +768,10 @@ public:
 
         // There is no support for auto-detection of proxies on non-windows platforms, it must be specified explicitly
         // from the client code.
+        printf("DEBUG 1\n");
         if (m_http_client->client_config().proxy().is_specified())
         {
+            printf("DEBUG 2\n");
             proxy_type =
                 m_http_client->base_uri().scheme() == U("https") ? http_proxy_type::ssl_tunnel : http_proxy_type::http;
             auto proxy = m_http_client->client_config().proxy();
@@ -776,6 +779,9 @@ public:
             proxy_port = proxy_uri.port() == -1 ? 8080 : proxy_uri.port();
             proxy_host = utility::conversions::to_utf8string(proxy_uri.host());
         }
+
+        printf("proxy_port %d\n", proxy_port);
+        printf("proxy_host %s\n", proxy_host.c_str());
 
         auto start_http_request_flow = [proxy_type, proxy_host, proxy_port AND_CAPTURE_MEMBER_FUNCTION_POINTERS](
                                            std::shared_ptr<asio_context> ctx) {
@@ -797,6 +803,8 @@ public:
             {
                 encoded_resource = U("/");
             }
+
+            printf("DEBUG encoded_resource %s\n", encoded_resource.c_str());
 
             const auto& method = ctx->m_request.method();
 
@@ -910,6 +918,8 @@ public:
                 auto tcp_port = proxy_type == http_proxy_type::http ? proxy_port : port;
 
                 tcp::resolver::query query(tcp_host, to_string(tcp_port));
+                printf("DEBUG calling async_resolve %s %d\n", tcp_host.c_str(), tcp_port);
+                printf("DEBUG query %s %s\n" ,query.host_name().c_str(), query.service_name().c_str());
                 auto client = std::static_pointer_cast<asio_client>(ctx->m_http_client);
                 client->m_resolver.async_resolve(query,
                                                  boost::bind(&asio_context::handle_resolve,
@@ -925,6 +935,8 @@ public:
                 // Otherwise context replacement in the handle_status_line() would leak the objects.
                 std::weak_ptr<asio_context> ctx_weak(ctx);
                 ctx->m_cancellationRegistration = ctx->m_request._cancellation_token().register_callback([ctx_weak]() {
+                                printf("DEBUG closing\n");
+
                     if (auto ctx_lock = ctx_weak.lock())
                     {
                         // Shut down transmissions, close the socket and prevent connection from being pooled.
@@ -936,6 +948,7 @@ public:
 
         if (proxy_type == http_proxy_type::ssl_tunnel)
         {
+            printf("DEBUG will call start_proxy_connect\n");
             // The ssl_tunnel_proxy keeps the context alive and then calls back once the ssl tunnel is established via
             // 'start_http_request_flow'
             std::shared_ptr<ssl_proxy_tunnel> ssl_tunnel =
@@ -997,6 +1010,7 @@ private:
         // map timer cancellation to time_out
         if (m_timer.has_timedout())
         {
+            printf("DEBUG has timeout\n");
             errorcodeValue = make_error_code(std::errc::timed_out).value();
         }
         else
@@ -1007,12 +1021,14 @@ private:
                 case httpclient_errorcode_context::writeheader:
                     if (ec == boost::system::errc::broken_pipe)
                     {
+                        printf("DEBUG httpclient_errorcode_context::writeheader changing boost::system::errc::broken_pipe to std::errc::host_unreachable\n");
                         errorcodeValue = make_error_code(std::errc::host_unreachable).value();
                     }
                     break;
                 case httpclient_errorcode_context::connect:
                     if (ec == boost::system::errc::connection_refused)
                     {
+                        printf("DEBUG httpclient_errorcode_context::connect changing boost::system::errc::connection_refused to std::errc::host_unreachable\n");
                         errorcodeValue = make_error_code(std::errc::host_unreachable).value();
                     }
                     break;
@@ -1020,6 +1036,7 @@ private:
                     if (ec.default_error_condition().value() ==
                         boost::system::errc::no_such_file_or_directory) // bug in boost error_code mapping
                     {
+                        printf("DEBUG httpclient_errorcode_context::readheader changing boost::system::errc::no_such_file_or_directory to std::errc::connection_aborted\n");
                         errorcodeValue = make_error_code(std::errc::connection_aborted).value();
                     }
                     break;
@@ -1031,6 +1048,7 @@ private:
 
     void handle_connect(const boost::system::error_code& ec, tcp::resolver::iterator endpoints)
     {
+        printf("DEBUG handle_connect\n");
         m_timer.reset();
         if (!ec)
         {
@@ -1063,6 +1081,7 @@ private:
     {
         if (ec)
         {
+            printf("DEBUG handle_resolve error %d %s\n", ec.value(), ec.message().c_str());
             report_error("Error resolving address", ec, httpclient_errorcode_context::connect);
         }
         else
