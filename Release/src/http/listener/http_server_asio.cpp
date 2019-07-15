@@ -817,7 +817,7 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
         ++m_refs;
         (will_deref_t) async_handle_chunked_header();
         auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        printf("ZZZ HERE 1, ts=%llu\n", static_cast<unsigned long long>(epoch));
+        printf("ZZZ about to dispatch_request_to_listener 1, ts=%llu\n", static_cast<unsigned long long>(epoch));
         return dispatch_request_to_listener();
     }
 
@@ -842,7 +842,7 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
     }
 
     auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    printf("ZZZ HERE 2, ts=%llu\n", static_cast<unsigned long long>(epoch));
+    printf("ZZZ about to dispatch_request_to_listener 2, ts=%llu\n", static_cast<unsigned long long>(epoch));
     return dispatch_request_to_listener();
 }
 
