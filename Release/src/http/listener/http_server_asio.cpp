@@ -816,7 +816,8 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
     {
         ++m_refs;
         (will_deref_t) async_handle_chunked_header();
-        printf("ZZZZ HERE 1\n");
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ HERE 1, ts=%llu\n", static_cast<unsigned long long>(epoch));
         return dispatch_request_to_listener();
     }
 
@@ -831,7 +832,8 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
     }
     else // need to read the sent data
     {
-        printf("ZZZ READING REST %lu\n", m_read_size);
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ READING REST %lu, ts=%llu\n", m_read_size, static_cast<unsigned long long>(epoch));
         m_read = 0;
         ++m_refs;
         async_read_until_buffersize(
@@ -839,7 +841,8 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
             [this](const boost::system::error_code& ec, size_t) { (will_deref_t) this->handle_body(ec); });
     }
 
-        printf("ZZZZ HERE 2\n");
+    auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ HERE 2, ts=%llu\n", static_cast<unsigned long long>(epoch));
     return dispatch_request_to_listener();
 }
 
@@ -906,6 +909,8 @@ will_deref_t asio_server_connection::handle_chunked_body(const boost::system::er
 
 will_deref_t asio_server_connection::handle_body(const boost::system::error_code& ec)
 {
+    auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ handle_body entry, ts=%llu\n", static_cast<unsigned long long>(epoch));
     auto requestImpl = get_request()._get_impl();
     // read body
     if (ec)
@@ -915,7 +920,8 @@ will_deref_t asio_server_connection::handle_body(const boost::system::error_code
     }
     else if (m_read < m_read_size) // there is more to read
     {
-        printf("ZZZ handle_body %lu\n", m_read_size - m_read);
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ handle_body %lu bytes, ts=%llu\n", m_read_size - m_read, static_cast<unsigned long long>(epoch));
         auto writebuf = requestImpl->outstream().streambuf();
         writebuf
             .putn_nocopy(boost::asio::buffer_cast<const uint8_t*>(m_request_buf.data()),
@@ -943,7 +949,8 @@ will_deref_t asio_server_connection::handle_body(const boost::system::error_code
     }
     else // have read request body
     {
-        printf("ZZZ handle_body complete\n");
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ handle_body complete, ts=%llu\n", static_cast<unsigned long long>(epoch));
         requestImpl->_complete(m_read);
         return deref();
     }
@@ -988,6 +995,8 @@ will_deref_t asio_server_connection::async_handle_chunked_header()
 template<typename ReadHandler>
 void asio_server_connection::async_read_until_buffersize(size_t size, const ReadHandler& handler)
 {
+    auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ async_read_until_buffersize %llu bytes, ts=%llu\n", static_cast<unsigned long long>(size), static_cast<unsigned long long>(epoch));
     // The condition is such that after completing the async_read below, m_request_buf will contain at least `size`
     // bytes.
     auto condition = transfer_at_least(0);

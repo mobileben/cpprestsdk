@@ -26,6 +26,7 @@
 #include <string>
 #include <system_error>
 #include <vector>
+#include <chrono>
 
 namespace web
 {
@@ -394,7 +395,11 @@ public:
         return m_decompressors;
     }
 
-    const pplx::task_completion_event<utility::size64_t>& _get_data_available() const { return m_data_available; }
+    const pplx::task_completion_event<utility::size64_t>& _get_data_available() const { 
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ _get_data_available ts=%llu\n", static_cast<unsigned long long>(epoch));
+
+        return m_data_available; }
 
     /// <summary>
     /// Prepare the message with an output stream to receive network data

@@ -18,6 +18,7 @@
 #include "sys/syscall.h"
 #include <thread>
 #include <future> // Remove later
+#include <chrono>
 
 #ifdef _WIN32
 #error "ERROR: This file should only be included in non-windows Build"
@@ -39,7 +40,8 @@ _PPLXIMP void linux_scheduler::schedule(TaskProc_t proc, void* param)
 	#ifdef ORIGNAL
     crossplat::threadpool::shared_instance().service().post(boost::bind(proc, param));
     #else
-    printf("ZZZZ adding task\n");
+   	auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ adding task: ts=%llu\n", static_cast<unsigned long long>(epoch));
     std::async(std::launch::async, std::bind(proc, param));
     #endif /* ORIGINAL */
 }

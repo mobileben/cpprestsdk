@@ -18,6 +18,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include <future> // Remove later
+#include <chrono>
 
 // DEVNOTE:
 // The use of mutexes is suboptimal for synchronization of task execution.
@@ -46,6 +47,8 @@ void apple_scheduler::schedule(TaskProc_t proc, void* param)
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async_f(queue, param, proc);
 #else
+   	auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ adding task: ts=%llu\n", static_cast<unsigned long long>(epoch));
     std::async(std::launch::async, std::bind(proc, param));
 #endif
 }

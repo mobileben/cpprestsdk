@@ -450,7 +450,8 @@ void http_msg_base::_complete(utility::size64_t body_size, const std::exception_
                 t.get();
                 auto now = std::chrono::high_resolution_clock::now();
                 auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-                printf("ZZZ completionEvent %lu %lu usec\n", static_cast<unsigned long>(body_size), static_cast<unsigned long>(diff));
+                auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                printf("ZZZ completionEvent %lu %lu usec, ts=%llu\n", static_cast<unsigned long>(body_size), static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
                 completionEvent.set(body_size);
             }
             catch (...)
@@ -815,7 +816,8 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
     {
         auto now = std::chrono::high_resolution_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-        printf("extract_string %lu\n", static_cast<unsigned long>(diff));
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ extract_string %lu, ts=%llu\n", static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
         return utility::string_t();
     }
     auto buf_r = instream().streambuf();
@@ -830,7 +832,8 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
             .get(); // There is no risk of blocking.
         auto now = std::chrono::high_resolution_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-        printf("extract_string %lu\n", static_cast<unsigned long>(diff));
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ extract_string %lu, ts=%llu\n", static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
         return to_string_t(std::move(body));
     }
 
@@ -844,7 +847,8 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
         // Could optimize for linux in the future if a latin1_to_utf8 function was written.
         auto now = std::chrono::high_resolution_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-        printf("extract_string %lu\n", static_cast<unsigned long>(diff));
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ extract_string %lu, ts=%llu\n", static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
         return to_string_t(latin1_to_utf16(std::move(body)));
     }
 
@@ -857,7 +861,8 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
             .get(); // There is no risk of blocking.
         auto now = std::chrono::high_resolution_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-        printf("extract_string %lu\n", static_cast<unsigned long>(diff));
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ extract_string %lu, ts=%llu\n", static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
         return to_string_t(std::move(body));
     }
 
@@ -870,7 +875,8 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
                    body.size() * sizeof(utf16string::value_type)); // There is no risk of blocking.
         auto now = std::chrono::high_resolution_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-        printf("extract_string %lu\n", static_cast<unsigned long>(diff));
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ extract_string %lu, ts=%llu\n", static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
         return convert_utf16_to_string_t(std::move(body));
     }
 
@@ -883,7 +889,8 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
                    body.size() * sizeof(utf16string::value_type)); // There is no risk of blocking.
         auto now = std::chrono::high_resolution_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-        printf("extract_string %lu\n", static_cast<unsigned long>(diff));
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ extract_string %lu, ts=%llu\n", static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
         return convert_utf16le_to_string_t(std::move(body), false);
     }
 
@@ -896,7 +903,8 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
                    body.size() * sizeof(utf16string::value_type)); // There is no risk of blocking.
         auto now = std::chrono::high_resolution_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-        printf("extract_string %lu\n", static_cast<unsigned long>(diff));
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ extract_string %lu, ts=%llu\n", static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
         return convert_utf16be_to_string_t(std::move(body), false);
     }
 
@@ -1139,7 +1147,7 @@ void details::http_msg_base::set_body(const streams::istream& instream,
     headers().set_content_length(contentLength);
     set_body(instream, contentType);
     m_data_available.set(contentLength);
-    printf("ZZ set m_data_available 1 %lu\n", static_cast<unsigned long>(contentLength));
+    printf("ZZZ set m_data_available 1 %lu usec\n", static_cast<unsigned long>(contentLength));
 }
 
 void details::http_msg_base::set_body(const concurrency::streams::istream& instream,
@@ -1149,7 +1157,7 @@ void details::http_msg_base::set_body(const concurrency::streams::istream& instr
     headers().set_content_length(contentLength);
     set_body(instream, contentType);
     m_data_available.set(contentLength);
-    printf("ZZ set m_data_available 2 %lu\n", static_cast<unsigned long>(contentLength));
+    printf("ZZZ set m_data_available 2 %lu usec\n", static_cast<unsigned long>(contentLength));
 }
 
 details::_http_request::_http_request(http::method mtd)
