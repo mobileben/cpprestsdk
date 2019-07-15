@@ -17,6 +17,7 @@
 #include "pplx/threadpool.h"
 #include "sys/syscall.h"
 #include <thread>
+#include <future> // Remove later
 
 #ifdef _WIN32
 #error "ERROR: This file should only be included in non-windows Build"
@@ -35,7 +36,12 @@ _PPLXIMP void YieldExecution() { std::this_thread::yield(); }
 
 _PPLXIMP void linux_scheduler::schedule(TaskProc_t proc, void* param)
 {
+	#ifdef ORIGNAL
     crossplat::threadpool::shared_instance().service().post(boost::bind(proc, param));
+    #else
+    printf("ZZZZ adding task\n");
+    std::async(std::launch::async, std::bind(proc, param));
+    #endif /* ORIGINAL */
 }
 
 } // namespace details

@@ -17,6 +17,7 @@
 #include <libkern/OSAtomic.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <future> // Remove later
 
 // DEVNOTE:
 // The use of mutexes is suboptimal for synchronization of task execution.
@@ -41,8 +42,12 @@ void YieldExecution() { sleep(0); }
 
 void apple_scheduler::schedule(TaskProc_t proc, void* param)
 {
+#ifdef ORIGINAL
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
     dispatch_async_f(queue, param, proc);
+#else
+    std::async(std::launch::async, std::bind(proc, param));
+#endif
 }
 
 } // namespace details
