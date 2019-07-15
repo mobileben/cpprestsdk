@@ -533,9 +533,12 @@ void hostport_listener::start()
     m_acceptor->listen(0 != m_backlog ? m_backlog : socket_base::max_connections);
 
     auto socket = new ip::tcp::socket(service);
+
     std::unique_ptr<ip::tcp::socket> usocket(socket);
     m_acceptor->async_accept(*socket, [this, socket](const boost::system::error_code& ec) {
         std::unique_ptr<ip::tcp::socket> usocket(socket);
+        boost::asio::ip::tcp::no_delay option(true);
+        socket->set_option(option);
         this->on_accept(std::move(usocket), ec);
     });
     usocket.release();
@@ -621,6 +624,8 @@ void hostport_listener::on_accept(std::unique_ptr<ip::tcp::socket> socket, const
         std::unique_ptr<ip::tcp::socket> usocket(newSocket);
         m_acceptor->async_accept(*newSocket, [this, newSocket](const boost::system::error_code& ec) {
             std::unique_ptr<ip::tcp::socket> usocket(newSocket);
+            boost::asio::ip::tcp::no_delay option(true);
+            newSocket->set_option(option);
             this->on_accept(std::move(usocket), ec);
         });
         usocket.release();
