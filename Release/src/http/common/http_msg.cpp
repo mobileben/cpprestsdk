@@ -423,6 +423,8 @@ private:
 void http_msg_base::_complete(utility::size64_t body_size, const std::exception_ptr& exceptionPtr)
 {
     auto start = std::chrono::high_resolution_clock::now();
+    auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ _complete entry ts=%llu\n", static_cast<unsigned long long>(epoch));
     const auto& completionEvent = _get_data_available();
     auto closeTask = pplx::task_from_result();
     if (m_default_outstream)
@@ -451,7 +453,7 @@ void http_msg_base::_complete(utility::size64_t body_size, const std::exception_
                 auto now = std::chrono::high_resolution_clock::now();
                 auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
                 auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                printf("ZZZ completionEvent %lu %lu usec, ts=%llu\n", static_cast<unsigned long>(body_size), static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
+                printf("ZZZ _complete setting completionEvent %lu bytes %lu usec, ts=%llu\n", static_cast<unsigned long>(body_size), static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
                 completionEvent.set(body_size);
             }
             catch (...)

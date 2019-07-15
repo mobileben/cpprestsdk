@@ -833,7 +833,7 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
     else // need to read the sent data
     {
         auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        printf("ZZZ READING REST %lu, ts=%llu\n", m_read_size, static_cast<unsigned long long>(epoch));
+        printf("ZZZ handle_headers READING REST %lu bytes, ts=%llu\n", m_read_size, static_cast<unsigned long long>(epoch));
         m_read = 0;
         ++m_refs;
         async_read_until_buffersize(
