@@ -811,6 +811,7 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
     {
         ++m_refs;
         (will_deref_t) async_handle_chunked_header();
+        printf("ZZZZ HERE 1\n");
         return dispatch_request_to_listener();
     }
 
@@ -825,6 +826,7 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
     }
     else // need to read the sent data
     {
+        printf("ZZZ READING REST %lu\n", m_read_size);
         m_read = 0;
         ++m_refs;
         async_read_until_buffersize(
@@ -832,6 +834,7 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
             [this](const boost::system::error_code& ec, size_t) { (will_deref_t) this->handle_body(ec); });
     }
 
+        printf("ZZZZ HERE 2\n");
     return dispatch_request_to_listener();
 }
 
@@ -907,6 +910,7 @@ will_deref_t asio_server_connection::handle_body(const boost::system::error_code
     }
     else if (m_read < m_read_size) // there is more to read
     {
+        printf("ZZZ handle_body %lu\n", m_read_size - m_read);
         auto writebuf = requestImpl->outstream().streambuf();
         writebuf
             .putn_nocopy(boost::asio::buffer_cast<const uint8_t*>(m_request_buf.data()),
@@ -934,6 +938,7 @@ will_deref_t asio_server_connection::handle_body(const boost::system::error_code
     }
     else // have read request body
     {
+        printf("ZZZ handle_body complete\n");
         requestImpl->_complete(m_read);
         return deref();
     }

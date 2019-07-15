@@ -15,6 +15,7 @@
 #include "../common/internal_http_helpers.h"
 #include "cpprest/producerconsumerstream.h"
 #include <sstream>
+#include <chrono>
 
 using namespace web;
 using namespace utility;
@@ -421,6 +422,7 @@ private:
 
 void http_msg_base::_complete(utility::size64_t body_size, const std::exception_ptr& exceptionPtr)
 {
+    auto start = std::chrono::high_resolution_clock::now();
     const auto& completionEvent = _get_data_available();
     auto closeTask = pplx::task_from_result();
     if (m_default_outstream)
@@ -442,10 +444,13 @@ void http_msg_base::_complete(utility::size64_t body_size, const std::exception_
 
     if (exceptionPtr == std::exception_ptr())
     {
-        inline_continuation(closeTask, [completionEvent, body_size](pplx::task<void> t) {
+        inline_continuation(closeTask, [completionEvent, body_size, start](pplx::task<void> t) {
             try
             {
                 t.get();
+                auto now = std::chrono::high_resolution_clock::now();
+                auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+                printf("ZZZ completionEvent %llu %lld usec\n", body_size, diff);
                 completionEvent.set(body_size);
             }
             catch (...)
@@ -804,9 +809,13 @@ utf16string details::http_msg_base::extract_utf16string(bool ignore_content_type
 
 utility::string_t details::http_msg_base::extract_string(bool ignore_content_type)
 {
+    auto start = std::chrono::high_resolution_clock::now();
     const auto& charset = parse_and_check_content_type(ignore_content_type, is_content_type_textual);
     if (charset.empty())
     {
+        auto now = std::chrono::high_resolution_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        printf("extract_string %lld\n", diff);
         return utility::string_t();
     }
     auto buf_r = instream().streambuf();
@@ -819,6 +828,9 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
         body.resize((std::string::size_type)buf_r.in_avail());
         buf_r.getn(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(body.data())), body.size())
             .get(); // There is no risk of blocking.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        printf("extract_string %lld\n", diff);
         return to_string_t(std::move(body));
     }
 
@@ -830,6 +842,9 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
         buf_r.getn(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(body.data())), body.size())
             .get(); // There is no risk of blocking.
         // Could optimize for linux in the future if a latin1_to_utf8 function was written.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        printf("extract_string %lld\n", diff);
         return to_string_t(latin1_to_utf16(std::move(body)));
     }
 
@@ -840,6 +855,9 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
         body.resize((std::string::size_type)buf_r.in_avail());
         buf_r.getn(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(body.data())), body.size())
             .get(); // There is no risk of blocking.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        printf("extract_string %lld\n", diff);
         return to_string_t(std::move(body));
     }
 
@@ -850,6 +868,9 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
         body.resize(buf_r.in_avail() / sizeof(utf16string::value_type));
         buf_r.getn(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(body.data())),
                    body.size() * sizeof(utf16string::value_type)); // There is no risk of blocking.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        printf("extract_string %lld\n", diff);
         return convert_utf16_to_string_t(std::move(body));
     }
 
@@ -860,6 +881,9 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
         body.resize(buf_r.in_avail() / sizeof(utf16string::value_type));
         buf_r.getn(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(body.data())),
                    body.size() * sizeof(utf16string::value_type)); // There is no risk of blocking.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        printf("extract_string %lld\n", diff);
         return convert_utf16le_to_string_t(std::move(body), false);
     }
 
@@ -870,6 +894,9 @@ utility::string_t details::http_msg_base::extract_string(bool ignore_content_typ
         body.resize(buf_r.in_avail() / sizeof(utf16string::value_type));
         buf_r.getn(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(body.data())),
                    body.size() * sizeof(utf16string::value_type)); // There is no risk of blocking.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        printf("extract_string %lld\n", diff);
         return convert_utf16be_to_string_t(std::move(body), false);
     }
 
@@ -1112,6 +1139,7 @@ void details::http_msg_base::set_body(const streams::istream& instream,
     headers().set_content_length(contentLength);
     set_body(instream, contentType);
     m_data_available.set(contentLength);
+    printf("ZZ set m_data_available 1 %lld\n", contentLength);
 }
 
 void details::http_msg_base::set_body(const concurrency::streams::istream& instream,
@@ -1121,6 +1149,7 @@ void details::http_msg_base::set_body(const concurrency::streams::istream& instr
     headers().set_content_length(contentLength);
     set_body(instream, contentType);
     m_data_available.set(contentLength);
+    printf("ZZ set m_data_available 2 %lld\n", contentLength);
 }
 
 details::_http_request::_http_request(http::method mtd)
