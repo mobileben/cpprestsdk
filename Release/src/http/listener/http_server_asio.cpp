@@ -482,7 +482,12 @@ private:
 
     inline will_deref_t deref()
     {
+        auto start = std::chrono::high_resolution_clock::now();
         if (--m_refs == 0) delete this;
+        auto now = std::chrono::high_resolution_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ deref %lu usec, ts=%llu\n", static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
         return will_deref_t {};
     }
 };
@@ -1009,16 +1014,19 @@ void asio_server_connection::async_read_until_buffersize(size_t size, const Read
 
     if (m_ssl_stream)
     {
+        printf("ZZZ pre async_read 1 %llu bytes, ts=%llu\n", static_cast<unsigned long long>(size), static_cast<unsigned long long>(epoch));
         boost::asio::async_read(*m_ssl_stream, m_request_buf, condition, handler);
     }
     else
     {
+        printf("ZZZ pre async_read 2 %llu bytes, ts=%llu\n", static_cast<unsigned long long>(size), static_cast<unsigned long long>(epoch));
         boost::asio::async_read(*m_socket, m_request_buf, condition, handler);
     }
 }
 
 will_deref_and_erase_t asio_server_connection::dispatch_request_to_listener()
 {
+    auto start = std::chrono::high_resolution_clock::now();
     // locate the listener:
     http_listener_impl* pListener = nullptr;
     auto currentRequest = get_request();
@@ -1077,6 +1085,11 @@ will_deref_and_erase_t asio_server_connection::dispatch_request_to_listener()
     }
 
     (will_deref_t) deref();
+    auto now = std::chrono::high_resolution_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+    auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ dispatch_request_to_listener done %llu usec, ts=%llu\n", static_cast<unsigned long long>(diff), static_cast<unsigned long long>(epoch));
+
     return will_deref_and_erase_t {};
 }
 
