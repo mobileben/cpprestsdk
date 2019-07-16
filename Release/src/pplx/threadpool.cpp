@@ -39,6 +39,7 @@ struct threadpool_impl final : crossplat::threadpool
 {
     threadpool_impl(size_t n) : crossplat::threadpool(n), m_work(m_service)
     {
+        printf("ZZZ creating threadpool with size %llu\n", static_cast<unsigned long long>(n));
         for (size_t i = 0; i < n; i++)
             add_thread();
     }
@@ -77,6 +78,8 @@ private:
 #endif // __ANDROID__
         threadpool_impl* _this = reinterpret_cast<threadpool_impl*>(arg);
         _this->m_service.run();
+        printf("ZZZ created thread\n");
+
 #if defined(__ANDROID__)
         pthread_cleanup_pop(true);
 #endif // __ANDROID__
