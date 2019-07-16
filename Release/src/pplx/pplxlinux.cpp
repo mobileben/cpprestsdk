@@ -75,7 +75,14 @@ struct Worker {
 	                task = std::move(queue.front());
 	                queue.pop();
 	        }
+		    auto start = std::chrono::high_resolution_clock::now();
+		   	auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		   	printf("ZZZ about to execute scheduled task ts=%llu\n", static_cast<unsigned long long>(epoch));
 	        task.func(task.data);
+	        auto now = std::chrono::high_resolution_clock::now();
+	        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+    	    epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		   	printf("ZZZ execute scheduled task completed %llu, ts=%llu\n", static_cast<unsigned long long>(diff), static_cast<unsigned long long>(epoch));
 	    }
     }
 };
