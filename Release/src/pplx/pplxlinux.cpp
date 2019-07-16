@@ -32,7 +32,11 @@ namespace platform
 {
 _PPLXIMP long GetCurrentThreadId() { return reinterpret_cast<long>(reinterpret_cast<void*>(pthread_self())); }
 
-_PPLXIMP void YieldExecution() { std::this_thread::yield(); }
+_PPLXIMP void YieldExecution() { 
+	auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	printf("ZZZ YieldExecution ts=%llu\n", static_cast<unsigned long long>(epoch)); 
+	std::this_thread::yield(); 
+	}
 } // namespace platform
 
 struct WorkerTask {

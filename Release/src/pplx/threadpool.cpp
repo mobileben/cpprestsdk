@@ -37,7 +37,7 @@ static void abort_if_no_jvm()
 
 struct threadpool_impl final : crossplat::threadpool
 {
-    threadpool_impl(size_t n) : crossplat::threadpool(n), m_work(m_service)
+    threadpool_impl(size_t n) : crossplat::threadpool(n), m_work(m_service), m_strand(m_service)
     {
         printf("ZZZ creating threadpool with size %llu\n", static_cast<unsigned long long>(n));
         for (size_t i = 0; i < n; i++)
@@ -54,6 +54,8 @@ struct threadpool_impl final : crossplat::threadpool
         {
             (*iter)->join();
         }
+        printf("ZZZ threadpool destroyed\n");
+
     }
 
     threadpool_impl& get_shared() { return *this; }
@@ -77,8 +79,9 @@ private:
         pthread_cleanup_push(detach_from_java, nullptr);
 #endif // __ANDROID__
         threadpool_impl* _this = reinterpret_cast<threadpool_impl*>(arg);
-        _this->m_service.run();
         printf("ZZZ created thread\n");
+        _this->m_service.run();
+        printf("ZZZ post m_service.run()\n");
 
 #if defined(__ANDROID__)
         pthread_cleanup_pop(true);
@@ -88,6 +91,7 @@ private:
 
     std::vector<std::unique_ptr<boost::asio::detail::thread>> m_threads;
     boost::asio::io_service::work m_work;
+    boost::asio::io_service::strand m_strand;
 };
 
 #if defined(_WIN32)

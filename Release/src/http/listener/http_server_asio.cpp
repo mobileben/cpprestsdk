@@ -571,6 +571,8 @@ will_deref_and_erase_t asio_server_connection::start_request_response()
 
     if (m_ssl_stream)
     {
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ pre-async_read_until 1 ts=%llu\n", static_cast<unsigned long long>(epoch));
         boost::asio::async_read_until(
             *m_ssl_stream, m_request_buf, CRLFCRLF, [this](const boost::system::error_code& ec, std::size_t) {
                 (will_deref_and_erase_t) this->handle_http_line(ec);
@@ -578,6 +580,8 @@ will_deref_and_erase_t asio_server_connection::start_request_response()
     }
     else
     {
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ pre-async_read_until 2 ts=%llu\n", static_cast<unsigned long long>(epoch));
         boost::asio::async_read_until(*m_socket,
                                       m_request_buf,
                                       crlfcrlf_nonascii_searcher,
@@ -639,6 +643,10 @@ void hostport_listener::on_accept(std::unique_ptr<ip::tcp::socket> socket, const
 
 will_deref_and_erase_t asio_server_connection::handle_http_line(const boost::system::error_code& ec)
 {
+    auto start = std::chrono::high_resolution_clock::now();
+    auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ handle_http_line ts=%llu\n", static_cast<unsigned long long>(epoch));
+
     auto thisRequest = http_request::_create_request(make_unique<linux_request_context>());
     set_request(thisRequest);
     if (ec)
@@ -759,6 +767,11 @@ will_deref_and_erase_t asio_server_connection::handle_http_line(const boost::sys
         {
             requestImpl->_set_remote_address(utility::conversions::to_string_t(endpoint.address().to_string()));
         }
+
+        auto now = std::chrono::high_resolution_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+        epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ handle_http_line done %lu, ts=%llu\n", static_cast<unsigned long>(diff), static_cast<unsigned long long>(epoch));
 
         return handle_headers();
     }
