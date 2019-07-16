@@ -35,13 +35,12 @@ _PPLXIMP long GetCurrentThreadId() { return reinterpret_cast<long>(reinterpret_c
 _PPLXIMP void YieldExecution() { std::this_thread::yield(); }
 } // namespace platform
 
-#define ORIGNAL
 
 _PPLXIMP void linux_scheduler::schedule(TaskProc_t proc, void* param)
 {
    	auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     printf("ZZZ adding task: ts=%llu\n", static_cast<unsigned long long>(epoch));
-	#ifdef ORIGNAL
+	#if 1
     crossplat::threadpool::shared_instance().service().post(boost::bind(proc, param));
     #else
     std::async(std::launch::async, std::bind(proc, param));
