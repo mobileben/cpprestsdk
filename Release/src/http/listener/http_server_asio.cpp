@@ -1010,6 +1010,7 @@ void asio_server_connection::async_read_until_buffersize(size_t size, const Read
     if (size > bufsize)
     {
         condition = transfer_at_least(size - bufsize);
+        printf("ZZZ transfer at least %llu\n", static_cast<unsigned long long>(size - bufsize));
     }
 
     if (m_ssl_stream)
