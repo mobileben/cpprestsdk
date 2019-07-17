@@ -555,6 +555,8 @@ void asio_server_connection::close()
     auto sock = m_socket.get();
     if (sock != nullptr)
     {
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ closing called ts=%llu\n", static_cast<unsigned long long>(epoch));
         boost::system::error_code ec;
         sock->cancel(ec);
         sock->shutdown(tcp::socket::shutdown_both, ec);
@@ -1272,6 +1274,8 @@ will_deref_and_erase_t asio_server_connection::finish_request_response()
     // kill the connection
     m_p_parent->internal_erase_connection(this);
 
+    auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ finish_request_response %llu\n", static_cast<unsigned long long>(epoch));
     close();
     (will_deref_t) deref();
 
@@ -1287,6 +1291,8 @@ void hostport_listener::stop()
         m_acceptor.reset();
         for (auto connection : m_connections)
         {
+        auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        printf("ZZZ hostport_listener::stop %llu\n", static_cast<unsigned long long>(epoch));
             connection->close();
         }
     }
