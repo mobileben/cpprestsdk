@@ -759,6 +759,7 @@ will_deref_and_erase_t asio_server_connection::handle_http_line(const boost::sys
         // if HTTP version is 1.0 then disable pipelining
         if (parsed_version == web::http::http_versions::HTTP_1_0)
         {
+            printf("ZZZ HTTP_1_0\n");
             m_close = true;
         }
 
