@@ -138,6 +138,8 @@ else()
   message(FATAL_ERROR "-- Unsupported Build Platform.")
 endif()
 
+add_definitions(-DBOOST_ASIO_ENABLE_HANDLER_TRACKING)
+
 # Compiler (not platform) specific settings
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR IOS)
   message("-- Setting clang options")
