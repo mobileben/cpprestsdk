@@ -546,7 +546,7 @@ void hostport_listener::start()
         socket->set_option(option);
         #ifdef TCP_QUICKACK
         const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-        m_socket.set_option(quickack);
+        socket->set_option(quickack);
         #endif /* TCP_QUICKACK */
         this->on_accept(std::move(usocket), ec);
     });
