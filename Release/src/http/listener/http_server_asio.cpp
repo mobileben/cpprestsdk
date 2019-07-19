@@ -542,12 +542,14 @@ void hostport_listener::start()
     std::unique_ptr<ip::tcp::socket> usocket(socket);
     m_acceptor->async_accept(*socket, [this, socket](const boost::system::error_code& ec) {
         std::unique_ptr<ip::tcp::socket> usocket(socket);
+        #if 0
         boost::asio::ip::tcp::no_delay option(true);
         socket->set_option(option);
         #ifdef TCP_QUICKACK
         const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
         socket->set_option(quickack);
         #endif /* TCP_QUICKACK */
+        #endif
         this->on_accept(std::move(usocket), ec);
     });
     usocket.release();
@@ -639,8 +641,14 @@ void hostport_listener::on_accept(std::unique_ptr<ip::tcp::socket> socket, const
         std::unique_ptr<ip::tcp::socket> usocket(newSocket);
         m_acceptor->async_accept(*newSocket, [this, newSocket](const boost::system::error_code& ec) {
             std::unique_ptr<ip::tcp::socket> usocket(newSocket);
+            #if 0
             boost::asio::ip::tcp::no_delay option(true);
             newSocket->set_option(option);
+            #ifdef TCP_QUICKACK
+            const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+            socket->set_option(quickack);
+            #endif /* TCP_QUICKACK */
+            #endif
             this->on_accept(std::move(usocket), ec);
         });
         usocket.release();
