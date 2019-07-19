@@ -544,6 +544,11 @@ void hostport_listener::start()
         std::unique_ptr<ip::tcp::socket> usocket(socket);
         boost::asio::ip::tcp::no_delay option(true);
         socket->set_option(option);
+        #ifdef TCP_QUICKACK
+        const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+        m_socket.set_option(quickack);
+                #error WHEE WE MADE IT
+        #endif /* TCP_QUICKACK */
         this->on_accept(std::move(usocket), ec);
     });
     usocket.release();

@@ -47,6 +47,8 @@
 #include <memory>
 #include <unordered_set>
 
+#include <netinet/tcp.h>
+
 #if defined(__GNUC__) && !defined(__clang__)
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
@@ -188,6 +190,7 @@ public:
         boost::system::error_code error;
         m_socket.shutdown(tcp::socket::shutdown_both, error);
         m_socket.close(error);
+        printf("ZZZ asio_connection closed\n");
     }
 
     boost::system::error_code cancel()
@@ -195,6 +198,7 @@ public:
         std::lock_guard<std::mutex> lock(m_socket_lock);
         boost::system::error_code error;
         m_socket.cancel(error);
+        printf("ZZZ asio_connection canceled\n");
         return error;
     }
 
@@ -249,6 +253,14 @@ public:
             std::lock_guard<std::mutex> lock(m_socket_lock);
             if (!m_closed)
             {
+
+                boost::asio::ip::tcp::no_delay option(true);
+                m_socket.set_option(option);
+                #ifdef TCP_QUICKACK
+                const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+                m_socket.set_option(quickack);
+                #error WHEE WE MADE IT
+                #endif /* TCP_QUICKACK */
                 m_socket.async_connect(begin, handler);
                 return;
             }
