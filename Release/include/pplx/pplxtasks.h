@@ -4226,6 +4226,7 @@ private:
     auto _ThenImpl(_Function&& _Func, const task_options& _TaskOptions) const ->
         typename details::_ContinuationTypeTraits<_Function, _InternalReturnType>::_TaskOfType
     {
+        printf("AAA _ThenImpl 1\n");
         if (!_M_Impl)
         {
             throw invalid_operation("then() cannot be called on a default constructed task.");
@@ -4256,6 +4257,7 @@ private:
                    details::_TaskInliningMode_t _InliningMode = details::_NoInline) const ->
         typename details::_ContinuationTypeTraits<_Function, _InternalReturnType>::_TaskOfType
     {
+        printf("AAA _ThenImpl 2\n");
         if (!_M_Impl)
         {
             throw invalid_operation("then() cannot be called on a default constructed task.");
@@ -4289,6 +4291,7 @@ private:
         _ContinuationTask._GetImpl()->_M_fUnwrappedTask = _Async_type_traits::_IsUnwrappedTaskOrAsync;
         _ContinuationTask._SetTaskCreationCallstack(_CreationStack);
 
+        printf("AAA pre-_ScheduleContinuation\n");
         _GetImpl()->_ScheduleContinuation(
             new _ContinuationTaskHandle<_InternalReturnType,
                                         _TaskType,
@@ -4299,6 +4302,7 @@ private:
                                                                                  std::forward<_Function>(_Func),
                                                                                  _ContinuationContext,
                                                                                  _InliningMode));
+        printf("AAA post-_ScheduleContinuation\n");
 
         return _ContinuationTask;
     }
