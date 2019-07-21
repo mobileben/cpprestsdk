@@ -95,14 +95,7 @@ static std::unique_ptr<Worker> scheduleWorker;
 
 _PPLXIMP void linux_scheduler::schedule(TaskProc_t proc, void* param)
 {
-   	auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    printf("ZZZ adding task: ts=%llu\n", static_cast<unsigned long long>(epoch));
-	if (!scheduleWorker) {
-		scheduleWorker = std::unique_ptr<Worker>(new Worker());
-	}
-    scheduleWorker->add(proc, param);
-
-#if 0
+#if 1
 	#if 1
 	printf("binding\n");
     crossplat::threadpool::shared_instance().service().post(boost::bind(proc, param));
