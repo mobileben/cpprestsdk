@@ -47,6 +47,8 @@
 #include <memory>
 #include <unordered_set>
 
+#include <netinet/tcp.h>
+
 #if defined(__GNUC__) && !defined(__clang__)
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
@@ -330,6 +332,18 @@ public:
 
     void start_reuse() { m_is_reused = true; }
 
+    void enable_no_delay() {
+        boost::asio::ip::tcp::no_delay option(true);
+        m_socket.set_option(option);
+    }
+
+    void enable_quick_ack() {
+        #ifdef TCP_QUICKACK
+        const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+        m_socket.set_option(quickack);
+        #endif /* TCP_QUICKACK */
+    }
+
 private:
     // Guards concurrent access to socket/ssl::stream. This is necessary
     // because timeouts and cancellation can touch the socket at the same time
@@ -609,6 +623,8 @@ public:
         {
             if (!ec)
             {
+                m_context->m_connection->enable_no_delay();
+                m_context->m_connection->enable_quick_ack();
                 m_context->m_timer.reset();
                 m_context->m_connection->async_write(m_request,
                                                      boost::bind(&ssl_proxy_tunnel::handle_write_request,
@@ -1006,6 +1022,8 @@ private:
         m_timer.reset();
         if (!ec)
         {
+            m_connection->enable_no_delay();
+            m_connection->enable_quick_ack();
             write_request();
         }
         else if (ec.value() == boost::system::errc::operation_canceled ||
