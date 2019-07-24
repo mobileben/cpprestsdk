@@ -586,7 +586,7 @@ will_deref_and_erase_t asio_server_connection::start_request_response()
                 #if 1
                 #ifdef TCP_QUICKACK
                 const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-                socket->set_option(quickack);
+                m_socket->set_option(quickack);
                 #endif /* TCP_QUICKACK */
                 #endif
                 (will_deref_and_erase_t) this->handle_http_line(ec);
@@ -603,7 +603,7 @@ will_deref_and_erase_t asio_server_connection::start_request_response()
                 #if 1
                 #ifdef TCP_QUICKACK
                 const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-                socket->set_option(quickack);
+                m_socketsocket->set_option(quickack);
                 #endif /* TCP_QUICKACK */
                 #endif
                                           (will_deref_and_erase_t) this->handle_http_line(ec);
