@@ -104,12 +104,10 @@ _PPLXIMP void linux_scheduler::schedule(TaskProc_t proc, void* param)
     printf("ZZZ adding task: ts=%llu\n", static_cast<unsigned long long>(epoch));
     crossplat::threadpool::shared_instance().service().post(boost::bind(proc, param));
 	 void *array[128];
-  size_t size;
   char **strings;
-  size_t i;
-  size_t len = 1024;
+  int i;
   int status;
-  size = backtrace (array, 128);
+  auto size = backtrace (array, 128);
   strings = backtrace_symbols (array, size);
   for (i = 0; i < size; i++) {
   			Dl_info info;
