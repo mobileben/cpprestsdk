@@ -19,6 +19,9 @@
 #include <thread>
 #include <future> // Remove later
 #include <chrono>
+#include <execinfo.h>
+#include <cxxabi.h>
+#include <dlfcn.h>
 
 #ifdef _WIN32
 #error "ERROR: This file should only be included in non-windows Build"
@@ -97,8 +100,33 @@ _PPLXIMP void linux_scheduler::schedule(TaskProc_t proc, void* param)
 {
 #if 1
 	#if 1
-	printf("binding\n");
+   	auto epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    printf("ZZZ adding task: ts=%llu\n", static_cast<unsigned long long>(epoch));
     crossplat::threadpool::shared_instance().service().post(boost::bind(proc, param));
+	 void *array[128];
+  size_t size;
+  char **strings;
+  size_t i;
+  size_t len = 1024;
+  int status;
+  size = backtrace (array, 128);
+  strings = backtrace_symbols (array, size);
+  for (i = 0; i < size; i++) {
+  			Dl_info info;
+		if (dladdr(array[i], &info)) {
+		     auto demangled = abi::__cxa_demangle(info.dli_sname, NULL, 0, &status);
+		     if (!status) {
+		     	printf("%s\n", demangled);
+		     } else {
+		     	printf("%s\n", strings[i]);
+		     }
+		} else {
+			printf("%s\n", strings[i]);
+		}
+  }
+
+  free (strings);
+  printf("\n");
     #else
     std::async(std::launch::async, std::bind(proc, param));
     #endif /* ORIGINAL */
