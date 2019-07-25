@@ -33,6 +33,11 @@ namespace platform
     boost::asio::io_service::work m_work(m_service);
     bool init(false);
 
+_PPLXIMP long GetCurrentThreadId() { return reinterpret_cast<long>(reinterpret_cast<void*>(pthread_self())); }
+
+_PPLXIMP void YieldExecution() { std::this_thread::yield(); }
+} // namespace platform
+
 
     static void* thread_start(void* arg) CPPREST_NOEXCEPT
     {
@@ -47,11 +52,6 @@ namespace platform
 #endif // __ANDROID__
         return arg;
     }
-
-_PPLXIMP long GetCurrentThreadId() { return reinterpret_cast<long>(reinterpret_cast<void*>(pthread_self())); }
-
-_PPLXIMP void YieldExecution() { std::this_thread::yield(); }
-} // namespace platform
 
 _PPLXIMP void linux_scheduler::schedule(TaskProc_t proc, void* param)
 {
