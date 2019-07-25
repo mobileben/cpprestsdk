@@ -538,12 +538,14 @@ void hostport_listener::start()
     std::unique_ptr<ip::tcp::socket> usocket(socket);
     m_acceptor->async_accept(*socket, [this, socket](const boost::system::error_code& ec) {
         std::unique_ptr<ip::tcp::socket> usocket(socket);
-        boost::asio::ip::tcp::no_delay option(true);
-        socket->set_option(option);
-        #ifdef TCP_QUICKACK
-        const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-        socket->set_option(quickack);
-        #endif /* TCP_QUICKACK */
+        if (!ec) {
+            boost::asio::ip::tcp::no_delay option(true);
+            socket->set_option(option);
+#ifdef TCP_QUICKACK
+            const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+            socket->set_option(quickack);
+#endif /* TCP_QUICKACK */
+        }
         this->on_accept(std::move(usocket), ec);
     });
     usocket.release();
@@ -573,10 +575,12 @@ will_deref_and_erase_t asio_server_connection::start_request_response()
     {
         boost::asio::async_read_until(
             *m_ssl_stream, m_request_buf, CRLFCRLF, [this](const boost::system::error_code& ec, std::size_t) {
-            #ifdef TCP_QUICKACK
-            const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-            m_socket->set_option(quickack);
-            #endif /* TCP_QUICKACK */
+#ifdef TCP_QUICKACK
+                if (!ec) {
+                    const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+                    m_socket->set_option(quickack);
+                }
+#endif /* TCP_QUICKACK */
                 (will_deref_and_erase_t) this->handle_http_line(ec);
             });
     }
@@ -586,10 +590,12 @@ will_deref_and_erase_t asio_server_connection::start_request_response()
                                       m_request_buf,
                                       crlfcrlf_nonascii_searcher,
                                       [this](const boost::system::error_code& ec, std::size_t) {
-                                            #ifdef TCP_QUICKACK
-                                            const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-                                            m_socket->set_option(quickack);
-                                            #endif /* TCP_QUICKACK */
+#ifdef TCP_QUICKACK
+                                            if (!ec) {
+                                                const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+                                                m_socket->set_option(quickack);
+                                            }
+#endif /* TCP_QUICKACK */
                                           (will_deref_and_erase_t) this->handle_http_line(ec);
                                       });
     }
@@ -637,12 +643,14 @@ void hostport_listener::on_accept(std::unique_ptr<ip::tcp::socket> socket, const
         std::unique_ptr<ip::tcp::socket> usocket(newSocket);
         m_acceptor->async_accept(*newSocket, [this, newSocket](const boost::system::error_code& ec) {
             std::unique_ptr<ip::tcp::socket> usocket(newSocket);
-            boost::asio::ip::tcp::no_delay option(true);
-            usocket->set_option(option);
-            #ifdef TCP_QUICKACK
-            const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-            usocket->set_option(quickack);
-            #endif /* TCP_QUICKACK */
+            if (!ec) {
+                boost::asio::ip::tcp::no_delay option(true);
+                usocket->set_option(option);
+#ifdef TCP_QUICKACK
+                const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+                usocket->set_option(quickack);
+#endif /* TCP_QUICKACK */
+            }
             this->on_accept(std::move(usocket), ec);
         });
         usocket.release();
@@ -852,10 +860,12 @@ will_deref_and_erase_t asio_server_connection::handle_headers()
         async_read_until_buffersize(
             (std::min)(ChunkSize, m_read_size),
             [this](const boost::system::error_code& ec, size_t) { 
-                #ifdef TCP_QUICKACK
-                const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-                m_socket->set_option(quickack);
-                #endif /* TCP_QUICKACK */
+#ifdef TCP_QUICKACK
+                if (!ec) {
+                    const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+                    m_socket->set_option(quickack);
+                }                    
+#endif /* TCP_QUICKACK */
                 (will_deref_t) this->handle_body(ec); });
     }
 
@@ -886,10 +896,12 @@ will_deref_t asio_server_connection::handle_chunked_header(const boost::system::
         else
         {
             async_read_until_buffersize(len + 2, [this, len](const boost::system::error_code& ec, size_t) {
-                #ifdef TCP_QUICKACK
-                const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-                m_socket->set_option(quickack);
-                #endif /* TCP_QUICKACK */
+#ifdef TCP_QUICKACK
+                if (!ec) {
+                    const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+                    m_socket->set_option(quickack);
+                }
+#endif /* TCP_QUICKACK */
                 (will_deref_t) this->handle_chunked_body(ec, len);
             });
             return will_deref_t {};
@@ -959,10 +971,12 @@ will_deref_t asio_server_connection::handle_body(const boost::system::error_code
                 async_read_until_buffersize(
                     (std::min)(ChunkSize, m_read_size - m_read),
                     [this](const boost::system::error_code& ec, size_t) { 
-                        #ifdef TCP_QUICKACK
-                        const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-                        m_socket->set_option(quickack);
-                        #endif /* TCP_QUICKACK */
+#ifdef TCP_QUICKACK
+                        if (!ec) {
+                            const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+                            m_socket->set_option(quickack);
+                        }
+#endif /* TCP_QUICKACK */
                         (will_deref_t) this->handle_body(ec); });
                 return will_deref_t {};
             });
@@ -998,10 +1012,12 @@ will_deref_t asio_server_connection::async_handle_chunked_header()
     {
         boost::asio::async_read_until(
             *m_ssl_stream, m_request_buf, CRLF, [this](const boost::system::error_code& ec, size_t) {
-            #ifdef TCP_QUICKACK
-            const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-            m_socket->set_option(quickack);
-            #endif /* TCP_QUICKACK */
+#ifdef TCP_QUICKACK
+                if (!ec) {
+                    const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+                    m_socket->set_option(quickack);
+                }
+#endif /* TCP_QUICKACK */
                 (will_deref_t) this->handle_chunked_header(ec);
             });
     }
@@ -1009,10 +1025,12 @@ will_deref_t asio_server_connection::async_handle_chunked_header()
     {
         boost::asio::async_read_until(
             *m_socket, m_request_buf, CRLF, [this](const boost::system::error_code& ec, size_t) {
-            #ifdef TCP_QUICKACK
-            const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
-            m_socket->set_option(quickack);
-            #endif /* TCP_QUICKACK */
+#ifdef TCP_QUICKACK
+                if (!ec) {
+                    const boost::asio::detail::socket_option::boolean<IPPROTO_TCP, TCP_QUICKACK> quickack(true);
+                    m_socket->set_option(quickack);
+                }
+#endif /* TCP_QUICKACK */
                 (will_deref_t) this->handle_chunked_header(ec);
             });
     }
